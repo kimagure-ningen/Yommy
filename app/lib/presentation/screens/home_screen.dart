@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../services/share_intent_service.dart';
 import '../widgets/article_card.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/filter_chips.dart';
@@ -10,11 +11,67 @@ import 'add_article_screen.dart';
 import 'settings_screen.dart';
 
 /// Main home screen showing article list
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Check for shared URLs on startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkSharedURLs();
+    });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Check for shared URLs when app becomes active
+    if (state == AppLifecycleState.resumed) {
+      _checkSharedURLs();
+    }
+  }
+
+  Future<void> _checkSharedURLs() async {
+    final shareService = ShareIntentService.instance;
+    final urls = await shareService.getSharedURLs();
+
+    if (urls.isEmpty) return;
+
+    // Clear the shared URLs immediately to avoid duplicates
+    await shareService.clearSharedURLs();
+
+    int addedCount = 0;
+    for (final url in urls) {
+      final article = await ref.read(articlesProvider.notifier).addFromUrl(url);
+      if (article != null) {
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$addedCount 件の記事を追加しました！'),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final articles = ref.watch(filteredArticlesProvider);
     final counts = ref.watch(articleCountsProvider);
 
