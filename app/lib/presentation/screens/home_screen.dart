@@ -25,7 +25,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     WidgetsBinding.instance.addObserver(this);
     // Check for shared URLs on startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkSharedURLs();
+      _checkSharedURL();
     });
   }
 
@@ -39,32 +39,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Check for shared URLs when app becomes active
     if (state == AppLifecycleState.resumed) {
-      _checkSharedURLs();
+      _checkSharedURL();
     }
   }
 
-  Future<void> _checkSharedURLs() async {
+  Future<void> _checkSharedURL() async {
     final shareService = ShareIntentService.instance;
-    final urls = await shareService.getSharedURLs();
+    final url = await shareService.getSharedUrl();
 
-    if (urls.isEmpty) return;
+    if (url == null || url.isEmpty) return;
 
-    // Clear the shared URLs immediately to avoid duplicates
+    // Clear the shared URLs (iOS)
     await shareService.clearSharedURLs();
 
-    int addedCount = 0;
-    for (final url in urls) {
-      final article = await ref.read(articlesProvider.notifier).addFromUrl(url);
-      if (article != null) {
-        addedCount++;
-      }
-    }
-
-    if (addedCount > 0 && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('$addedCount 件の記事を追加しました！'),
-          backgroundColor: Theme.of(context).colorScheme.secondary,
+    // Open add article screen with the shared URL
+    if (mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => AddArticleScreen(initialUrl: url),
         ),
       );
     }
@@ -201,10 +193,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     );
   }
 
-  void _openAddArticle(BuildContext context) {
+  void _openAddArticle(BuildContext context, {String? initialUrl}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const AddArticleScreen(),
+        builder: (context) => AddArticleScreen(initialUrl: initialUrl),
       ),
     );
   }

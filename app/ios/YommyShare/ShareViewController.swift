@@ -1,7 +1,6 @@
 import UIKit
 import Social
 import MobileCoreServices
-import UniformTypeIdentifiers
 
 class ShareViewController: UIViewController {
     
@@ -24,28 +23,32 @@ class ShareViewController: UIViewController {
             
             for attachment in attachments {
                 // Handle URLs
-                if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] (data, error) in
+                if attachment.hasItemConformingToTypeIdentifier(kUTTypeURL as String) {
+                    attachment.loadItem(forTypeIdentifier: kUTTypeURL as String, options: nil) { [weak self] (data, error) in
                         if let url = data as? URL {
-                            self?.saveURL(url.absoluteString)
+                            self?.saveURLAndOpenApp(url.absoluteString)
+                        } else {
+                            self?.completeRequest()
                         }
-                        self?.completeRequest()
                     }
                     return
                 }
                 
                 // Handle plain text (might contain URL)
-                if attachment.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) {
-                    attachment.loadItem(forTypeIdentifier: UTType.plainText.identifier, options: nil) { [weak self] (data, error) in
+                if attachment.hasItemConformingToTypeIdentifier(kUTTypePlainText as String) {
+                    attachment.loadItem(forTypeIdentifier: kUTTypePlainText as String, options: nil) { [weak self] (data, error) in
                         if let text = data as? String {
                             // Check if it's a URL
                             if let url = URL(string: text), url.scheme != nil {
-                                self?.saveURL(text)
+                                self?.saveURLAndOpenApp(text)
                             } else if let detected = self?.detectURL(in: text) {
-                                self?.saveURL(detected)
+                                self?.saveURLAndOpenApp(detected)
+                            } else {
+                                self?.completeRequest()
                             }
+                        } else {
+                            self?.completeRequest()
                         }
-                        self?.completeRequest()
                     }
                     return
                 }
@@ -65,6 +68,17 @@ class ShareViewController: UIViewController {
         return nil
     }
     
+    private func saveURLAndOpenApp(_ urlString: String) {
+        // Save URL to App Groups
+        saveURL(urlString)
+        
+        // Open main app with URL scheme
+        openMainApp()
+        
+        // Complete the share extension
+        completeRequest()
+    }
+    
     private func saveURL(_ urlString: String) {
         guard let userDefaults = UserDefaults(suiteName: appGroupId) else { return }
         
@@ -75,6 +89,32 @@ class ShareViewController: UIViewController {
             urls.append(urlString)
             userDefaults.set(urls, forKey: sharedKey)
             userDefaults.synchronize()
+        }
+    }
+    
+    private func openMainApp() {
+        let urlString = "yommy://share"
+        guard let url = URL(string: urlString) else { return }
+        
+        // Use responder chain to open URL
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url, options: [:], completionHandler: nil)
+                return
+            }
+            responder = responder?.next
+        }
+        
+        // Alternative method using selector
+        let selector = sel_registerName("openURL:")
+        responder = self
+        while responder != nil {
+            if responder!.responds(to: selector) {
+                responder!.perform(selector, with: url)
+                return
+            }
+            responder = responder?.next
         }
     }
     
