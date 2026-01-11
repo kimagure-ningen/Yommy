@@ -1,11 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/theme/app_theme.dart';
 import '../../data/models/article.dart';
+import '../../core/theme/app_theme.dart';
 
-/// Card widget for displaying an article
+/// Sleek article card with swipe actions
 class ArticleCard extends StatelessWidget {
   final Article article;
   final VoidCallback onTap;
@@ -24,204 +26,275 @@ class ArticleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRead = article.status == ArticleStatus.read;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Slidable(
-        key: ValueKey(article.id),
-        endActionPane: ActionPane(
-          motion: const BehindMotion(),
-          children: [
-            // Toggle read/unread
-            SlidableAction(
-              onPressed: (_) => onToggleRead(),
-              backgroundColor: isRead ? AppColors.unreadBadge : AppColors.readBadge,
-              foregroundColor: Colors.white,
-              icon: isRead ? Icons.mark_email_unread : Icons.check,
-              label: isRead ? '未読に' : '読了',
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(16),
-              ),
-            ),
-            // Delete
-            SlidableAction(
-              onPressed: (_) => onDelete(),
-              backgroundColor: Colors.red.shade400,
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: '削除',
-              borderRadius: const BorderRadius.horizontal(
-                right: Radius.circular(16),
-              ),
-            ),
-          ],
-        ),
-        child: Card(
-          child: InkWell(
-            onTap: onTap,
+    return Slidable(
+      key: ValueKey(article.id),
+      endActionPane: ActionPane(
+        motion: const BehindMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) => onToggleRead(),
+            backgroundColor: AppColors.success,
+            foregroundColor: Colors.white,
+            icon: Icons.check_circle,
+            label: isRead ? 'Unread' : 'Read',
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+          ),
+          SlidableAction(
+            onPressed: (_) => onDelete(),
+            backgroundColor: AppColors.destructive,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.card,
             borderRadius: BorderRadius.circular(16),
-            child: Opacity(
-              opacity: isRead ? 0.6 : 1.0,
-              child: Row(
-                children: [
-                  // Thumbnail
-                  _buildThumbnail(),
-
-                  // Content
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Source & status row
-                          Row(
-                            children: [
-                              if (article.isFromKnownSource)
-                                _buildSourceBadge(context),
-                              const Spacer(),
-                              _buildStatusBadge(context),
-                            ],
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          // Title
-                          Text(
-                            article.title,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  decoration: isRead
-                                      ? TextDecoration.lineThrough
-                                      : null,
-                                ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          // Description
-                          if (article.description != null) ...[
-                            const SizedBox(height: 4),
+            border: Border.all(
+              color: AppColors.border.withOpacity(0.5),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              if (!isRead)
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 4,
+                    decoration: const BoxDecoration(
+                      color: AppColors.accentForeground,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        bottomLeft: Radius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+              
+              Opacity(
+                opacity: isRead ? 0.7 : 1.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSourceRow(),
+                            const SizedBox(height: 8),
+                            
                             Text(
-                              article.description!,
-                              style: Theme.of(context).textTheme.bodySmall,
+                              article.title,
+                              style: GoogleFonts.dmSerifDisplay(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.cardForeground,
+                                decoration: isRead ? TextDecoration.lineThrough : null,
+                                decorationColor: AppColors.mutedForeground,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ],
-
-                          // Memo
-                          if (article.memo != null) ...[
-                            const SizedBox(height: 6),
+                            
+                            if (article.description != null) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                article.description!,
+                                style: GoogleFonts.instrumentSans(
+                                  fontSize: 14,
+                                  color: AppColors.mutedForeground,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                            
+                            if (article.memo != null) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF9E6),
+                                  border: Border.all(
+                                    color: const Color(0xFFFFE4B5),
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Iconify(
+                                      'solar:notes-bold',
+                                      size: 14,
+                                      color: Color(0xFFF59E0B),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        article.memo!,
+                                        style: GoogleFonts.instrumentSans(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          fontStyle: FontStyle.italic,
+                                          color: const Color(0xFF92400E),
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            
+                            const SizedBox(height: 12),
+                            
                             Row(
                               children: [
-                                Icon(
-                                  Icons.note,
-                                  size: 14,
-                                  color: Theme.of(context).colorScheme.secondary,
-                                ),
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    article.memo!,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Theme.of(context).colorScheme.secondary,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
+                                  decoration: BoxDecoration(
+                                    color: isRead ? AppColors.secondary : AppColors.accent,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    isRead ? 'Read' : 'Unread',
+                                    style: GoogleFonts.instrumentSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: isRead
+                                          ? AppColors.mutedForeground
+                                          : AppColors.accentForeground,
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  onPressed: () {},
+                                  icon: Iconify(
+                                    'solar:menu-dots-bold',
+                                    size: 16,
+                                    color: AppColors.mutedForeground,
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
                                 ),
                               ],
                             ),
                           ],
-
-                          // Date
-                          const SizedBox(height: 6),
-                          Text(
-                            _formatDate(article.createdAt),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
+                      
+                      if (article.hasThumbnail) ...[
+                        const SizedBox(width: 16),
+                        _buildThumbnail(),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _buildSourceRow() {
+    return Row(
+      children: [
+        if (article.isFromKnownSource)
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: AppColors.secondary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Iconify(
+                'solar:bookmark-bold',
+                size: 10,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        if (article.isFromKnownSource) const SizedBox(width: 8),
+        
+        Expanded(
+          child: Text(
+            article.sourceName ?? 'Unknown',
+            style: GoogleFonts.instrumentSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mutedForeground,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        
+        Text(
+          _formatDate(article.createdAt),
+          style: GoogleFonts.instrumentSans(
+            fontSize: 10,
+            color: AppColors.mutedForeground,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildThumbnail() {
     return ClipRRect(
-      borderRadius: const BorderRadius.horizontal(
-        left: Radius.circular(16),
-      ),
+      borderRadius: BorderRadius.circular(12),
       child: SizedBox(
-        width: 100,
-        height: 100,
-        child: article.hasThumbnail
-            ? CachedNetworkImage(
-                imageUrl: article.thumbnailUrl!,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => _buildPlaceholder(),
-                errorWidget: (_, __, ___) => _buildPlaceholder(),
-              )
-            : _buildPlaceholder(),
-      ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey.shade200,
-      child: const Icon(
-        Icons.article,
-        size: 32,
-        color: Colors.grey,
-      ),
-    );
-  }
-
-  Widget _buildSourceBadge(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        article.sourceName!,
-        style: TextStyle(
-          fontSize: 10,
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(BuildContext context) {
-    final isRead = article.status == ArticleStatus.read;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: isRead
-            ? AppColors.readBadge.withOpacity(0.2)
-            : AppColors.unreadBadge.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        isRead ? '読了' : '未読',
-        style: TextStyle(
-          fontSize: 10,
-          color: isRead ? AppColors.readBadge : AppColors.unreadBadge,
-          fontWeight: FontWeight.w500,
+        width: 96,
+        height: 96,
+        child: CachedNetworkImage(
+          imageUrl: article.thumbnailUrl!,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => Container(
+            color: AppColors.secondary,
+            child: Center(
+              child: Iconify(
+                'solar:image-bold',
+                size: 32,
+                color: AppColors.mutedForeground,
+              ),
+            ),
+          ),
+          errorWidget: (_, __, ___) => Container(
+            color: AppColors.secondary,
+            child: Center(
+              child: Iconify(
+                'solar:image-bold',
+                size: 32,
+                color: AppColors.mutedForeground,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -231,12 +304,14 @@ class ArticleCard extends StatelessWidget {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inDays == 0) {
-      return '今日';
+    if (diff.inHours < 1) {
+      return '${diff.inMinutes}m ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours}h ago';
     } else if (diff.inDays == 1) {
-      return '昨日';
+      return 'Yesterday';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays}日前';
+      return '${diff.inDays} days ago';
     } else {
       return '${date.month}/${date.day}';
     }

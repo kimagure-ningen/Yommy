@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Empty state widget when no articles exist
+import '../../core/theme/app_theme.dart';
+
+/// Empty state when no articles exist
 class EmptyState extends StatelessWidget {
   const EmptyState({super.key});
 
@@ -8,16 +11,16 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(48),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Cute illustration
+            // Icon
             Container(
-              width: 120,
-              height: 120,
+              width: 96,
+              height: 96,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: AppColors.secondary.withOpacity(0.5),
                 shape: BoxShape.circle,
               ),
               child: const Center(
@@ -27,53 +30,26 @@ class EmptyState extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 24),
-
+            
+            // Title
             Text(
-              'まだ記事がないよ',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              '右下の＋ボタンから\n読みたい記事を追加してね！',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
-                  ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Hint about share
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+              'No articles yet',
+              style: GoogleFonts.dmSerifDisplay(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.foreground,
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.lightbulb_outline,
-                    color: Theme.of(context).colorScheme.secondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      '他のアプリから「共有」でも\n追加できるよ！',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(height: 8),
+            
+            // Description
+            Text(
+              'Start building your reading list by adding articles you find interesting!',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.instrumentSans(
+                fontSize: 14,
+                color: AppColors.mutedForeground,
               ),
             ),
           ],

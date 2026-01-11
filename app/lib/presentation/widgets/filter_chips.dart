@@ -1,91 +1,91 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/providers/providers.dart';
+import '../../core/theme/app_theme.dart';
 
-/// Filter chips for article list
-class FilterChips extends ConsumerWidget {
+/// Filter tabs for article list
+class FilterChips extends ConsumerStatefulWidget {
   const FilterChips({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FilterChips> createState() => _FilterChipsState();
+}
+
+class _FilterChipsState extends ConsumerState<FilterChips> {
+  @override
+  Widget build(BuildContext context) {
     final currentFilter = ref.watch(articleFilterProvider);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.secondary,
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Row(
         children: [
-          _FilterChip(
-            label: '全て',
-            isSelected: currentFilter == ArticleFilter.all,
-            onTap: () =>
-                ref.read(articleFilterProvider.notifier).state = ArticleFilter.all,
+          Expanded(
+            child: _buildTab(
+              label: 'All',
+              filter: ArticleFilter.all,
+              isSelected: currentFilter == ArticleFilter.all,
+            ),
           ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: '未読',
-            isSelected: currentFilter == ArticleFilter.unread,
-            onTap: () =>
-                ref.read(articleFilterProvider.notifier).state = ArticleFilter.unread,
+          Expanded(
+            child: _buildTab(
+              label: 'Unread',
+              filter: ArticleFilter.unread,
+              isSelected: currentFilter == ArticleFilter.unread,
+            ),
           ),
-          const SizedBox(width: 8),
-          _FilterChip(
-            label: '読了',
-            isSelected: currentFilter == ArticleFilter.read,
-            onTap: () =>
-                ref.read(articleFilterProvider.notifier).state = ArticleFilter.read,
+          Expanded(
+            child: _buildTab(
+              label: 'Read',
+              filter: ArticleFilter.read,
+              isSelected: currentFilter == ArticleFilter.read,
+            ),
           ),
         ],
       ),
     );
   }
-}
 
-class _FilterChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FilterChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      child: Material(
-        color: isSelected
-            ? Theme.of(context).colorScheme.primary
-            : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        elevation: isSelected ? 2 : 0,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: isSelected
-                    ? Colors.transparent
-                    : Colors.grey.shade300,
-              ),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? Colors.white
-                    : Theme.of(context).textTheme.bodyMedium?.color,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
+  Widget _buildTab({
+    required String label,
+    required ArticleFilter filter,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        ref.read(articleFilterProvider.notifier).state = filter;
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.card : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.instrumentSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: isSelected
+                  ? AppColors.foreground
+                  : AppColors.mutedForeground,
             ),
           ),
         ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:iconify_flutter/iconify_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_theme.dart';
@@ -19,13 +21,15 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
+  int _selectedTabIndex = 0;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Check for shared URLs on startup
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkSharedURL();
+      _checkSharedURLs();
     });
   }
 
@@ -37,26 +41,32 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Check for shared URLs when app becomes active
     if (state == AppLifecycleState.resumed) {
-      _checkSharedURL();
+      _checkSharedURLs();
     }
   }
 
-  Future<void> _checkSharedURL() async {
+  Future<void> _checkSharedURLs() async {
     final shareService = ShareIntentService.instance;
-    final url = await shareService.getSharedUrl();
+    final urls = await shareService.getSharedURLs();
 
-    if (url == null || url.isEmpty) return;
+    if (urls.isEmpty) return;
 
-    // Clear the shared URLs (iOS)
     await shareService.clearSharedURLs();
 
-    // Open add article screen with the shared URL
-    if (mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => AddArticleScreen(initialUrl: url),
+    int addedCount = 0;
+    for (final url in urls) {
+      final article = await ref.read(articlesProvider.notifier).addFromUrl(url);
+      if (article != null) {
+        addedCount++;
+      }
+    }
+
+    if (addedCount > 0 && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$addedCount 件の記事を追加しました！'),
+          backgroundColor: Theme.of(context).colorScheme.secondary,
         ),
       );
     }
@@ -67,179 +77,396 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     final articles = ref.watch(filteredArticlesProvider);
     final counts = ref.watch(articleCountsProvider);
 
+    final filteredArticles = _searchQuery.isEmpty
+        ? articles
+        : articles.where((article) {
+            final query = _searchQuery.toLowerCase();
+            return article.title.toLowerCase().contains(query) ||
+                (article.description?.toLowerCase().contains(query) ?? false);
+          }).toList();
+
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
           children: [
-            Text(
-              'Yommy',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+            _buildHeader(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              child: _buildStatsCards(counts),
             ),
-            const SizedBox(width: 8),
-            const Text('📚', style: TextStyle(fontSize: 24)),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
+              child: FilterChips(),
+            ),
+            Expanded(
+              child: filteredArticles.isEmpty
+                  ? const EmptyState()
+                  : _buildArticleList(filteredArticles),
+            ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => _openSettings(context),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Stats bar
-          _buildStatsBar(context, counts),
-
-          // Filter chips
-          const FilterChips(),
-
-          // Article list
-          Expanded(
-            child: articles.isEmpty
-                ? const EmptyState()
-                : _buildArticleList(context, ref, articles),
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddArticle(context),
-        child: const Icon(Icons.add),
+        child: Iconify(
+          'solar:add-circle-bold',
+          size: 32,
+          color: AppColors.primaryForeground,
+        ),
       ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildStatsBar(BuildContext context, ArticleCounts counts) {
+  Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.border.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(
-            context,
-            '全て',
-            counts.total,
-            AppColors.textSecondaryLight,
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Iconify(
+                'solar:bookmark-bold',
+                size: 20,
+                color: AppColors.primaryForeground,
+              ),
+            ),
           ),
-          _buildStatItem(
-            context,
-            '未読',
-            counts.unread,
-            AppColors.unreadBadge,
+          const SizedBox(width: 8),
+          Text(
+            'Yommy',
+            style: GoogleFonts.dmSerifDisplay(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.foreground,
+            ),
           ),
-          _buildStatItem(
-            context,
-            '読了',
-            counts.read,
-            AppColors.readBadge,
+          const Spacer(),
+          IconButton(
+            onPressed: () => _showSearchDialog(),
+            icon: Iconify(
+              'solar:magnifer-linear',
+              size: 24,
+              color: AppColors.mutedForeground,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.transparent,
+            ),
+          ),
+          IconButton(
+            onPressed: () => _openSettings(context),
+            icon: Iconify(
+              'solar:settings-bold',
+              size: 24,
+              color: AppColors.mutedForeground,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.transparent,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(
-    BuildContext context,
-    String label,
-    int count,
-    Color color,
-  ) {
-    return Column(
+  Widget _buildStatsCards(ArticleCounts counts) {
+    return Row(
       children: [
-        Text(
-          count.toString(),
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+        Expanded(
+          child: _buildStatCard(
+            icon: 'solar:documents-bold',
+            iconColor: AppColors.primary,
+            iconBgColor: AppColors.secondary,
+            count: counts.total,
+            label: 'TOTAL',
+            countColor: AppColors.foreground,
+          ),
         ),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall,
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            icon: 'solar:bookmark-circle-bold',
+            iconColor: AppColors.accentForeground,
+            iconBgColor: AppColors.accent.withOpacity(0.2),
+            count: counts.unread,
+            label: 'UNREAD',
+            countColor: AppColors.accentForeground,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildStatCard(
+            icon: 'solar:check-circle-bold',
+            iconColor: AppColors.success,
+            iconBgColor: const Color(0xFFDCFCE7),
+            count: counts.read,
+            label: 'READ',
+            countColor: AppColors.success,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildArticleList(
-    BuildContext context,
-    WidgetRef ref,
-    List<dynamic> articles,
-  ) {
+  Widget _buildStatCard({
+    required String icon,
+    required Color iconColor,
+    required Color iconBgColor,
+    required int count,
+    required String label,
+    required Color countColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.border.withOpacity(0.4),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Iconify(
+                icon,
+                size: 16,
+                color: iconColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            count.toString(),
+            style: GoogleFonts.dmSerifDisplay(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: countColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.instrumentSans(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mutedForeground,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildArticleList(List<dynamic> articles) {
     return RefreshIndicator(
       onRefresh: () async {
         ref.read(articlesProvider.notifier).refresh();
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: 100,
-        ),
+      color: AppColors.primary,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
         itemCount: articles.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
           final article = articles[index];
           return ArticleCard(
             article: article,
-            onTap: () => _openArticle(context, ref, article),
-            onDelete: () => _deleteArticle(context, ref, article.id),
-            onToggleRead: () => _toggleRead(ref, article),
+            onTap: () => _openArticle(article),
+            onDelete: () => _deleteArticle(article.id),
+            onToggleRead: () => _toggleRead(article),
           );
         },
       ),
     );
   }
 
-  void _openAddArticle(BuildContext context, {String? initialUrl}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AddArticleScreen(initialUrl: initialUrl),
+  Widget _buildBottomNav() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        border: Border(
+          top: BorderSide(
+            color: AppColors.border,
+            width: 1,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(
+                icon: 'solar:home-2-bold',
+                label: 'Home',
+                isSelected: _selectedTabIndex == 0,
+                onTap: () => setState(() => _selectedTabIndex = 0),
+              ),
+              _buildNavItem(
+                icon: 'solar:star-bold',
+                label: 'Favorites',
+                isSelected: _selectedTabIndex == 1,
+                onTap: () => setState(() => _selectedTabIndex = 1),
+              ),
+              _buildNavItem(
+                icon: 'solar:user-bold',
+                label: 'Profile',
+                isSelected: _selectedTabIndex == 2,
+                onTap: () => setState(() => _selectedTabIndex = 2),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _openSettings(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const SettingsScreen(),
+  Widget _buildNavItem({
+    required String icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Iconify(
+              icon,
+              size: 24,
+              color: isSelected ? AppColors.primary : AppColors.mutedForeground,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.instrumentSans(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? AppColors.primary : AppColors.mutedForeground,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _openArticle(BuildContext context, WidgetRef ref, dynamic article) {
-    // Mark as read and open URL
-    ref.read(articlesProvider.notifier).markAsRead(article.id);
-    // TODO: Open URL with url_launcher
-  }
-
-  void _deleteArticle(BuildContext context, WidgetRef ref, String id) {
+  void _showSearchDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('削除しますか？'),
-        content: const Text('この記事をリストから削除します。'),
+        title: Text(
+          'Search Articles',
+          style: GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Enter keywords...',
+            prefixIcon: Icon(Icons.search),
+          ),
+          onChanged: (value) {
+            setState(() => _searchQuery = value);
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('キャンセル'),
-          ),
-          TextButton(
             onPressed: () {
-              ref.read(articlesProvider.notifier).deleteArticle(id);
+              setState(() => _searchQuery = '');
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('削除'),
+            child: const Text('Clear'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
   }
 
-  void _toggleRead(WidgetRef ref, dynamic article) {
+  void _openAddArticle(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AddArticleScreen()),
+    );
+  }
+
+  void _openSettings(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+    );
+  }
+
+  void _openArticle(dynamic article) {
+    ref.read(articlesProvider.notifier).markAsRead(article.id);
+  }
+
+  void _deleteArticle(String id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Delete Article?',
+          style: GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.bold),
+        ),
+        content: const Text('This article will be removed from your list.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(articlesProvider.notifier).deleteArticle(id);
+              Navigator.pop(context);
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _toggleRead(dynamic article) {
     final notifier = ref.read(articlesProvider.notifier);
     if (article.status.name == 'unread') {
       notifier.markAsRead(article.id);

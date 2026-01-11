@@ -1,42 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-/// Yommy's color palette
+/// Sleek design system color palette
 class AppColors {
-  // Primary - Warm coral/pink (cute and inviting)
-  static const Color primary = Color(0xFFFF7B7B);
-  static const Color primaryLight = Color(0xFFFFADAD);
-  static const Color primaryDark = Color(0xFFE55B5B);
-
-  // Secondary - Soft mint green
-  static const Color secondary = Color(0xFF7BCFB5);
-  static const Color secondaryLight = Color(0xFFA8E6CF);
-  static const Color secondaryDark = Color(0xFF5BA88E);
-
-  // Accent - Warm yellow
-  static const Color accent = Color(0xFFFFD93D);
-
-  // Background colors
-  static const Color backgroundLight = Color(0xFFFFFBF5);
-  static const Color backgroundDark = Color(0xFF1A1A2E);
-
-  // Surface colors
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color surfaceDark = Color(0xFF242438);
-
-  // Text colors
-  static const Color textPrimaryLight = Color(0xFF2D2D2D);
-  static const Color textSecondaryLight = Color(0xFF6B6B6B);
-  static const Color textPrimaryDark = Color(0xFFF5F5F5);
-  static const Color textSecondaryDark = Color(0xFFB0B0B0);
-
+  // Background & Foreground
+  static const Color background = Color(0xFFF8FAFC);
+  static const Color foreground = Color(0xFF0F172A);
+  
+  // Primary
+  static const Color primary = Color(0xFF1E293B);
+  static const Color primaryLight = Color(0xFF334155);
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color primaryForeground = Color(0xFFFFFFFF);
+  
+  // Secondary
+  static const Color secondary = Color(0xFFF1F5F9);
+  static const Color secondaryLight = Color(0xFFF8FAFC);
+  static const Color secondaryDark = Color(0xFFE2E8F0);
+  static const Color secondaryForeground = Color(0xFF334155);
+  
+  // Muted
+  static const Color muted = Color(0xFFF1F5F9);
+  static const Color mutedForeground = Color(0xFF64748B);
+  
+  // Accent
+  static const Color accent = Color(0xFFE0E7FF);
+  static const Color accentForeground = Color(0xFF3730A3);
+  
+  // Destructive / Error
+  static const Color destructive = Color(0xFFEF4444);
+  static const Color error = Color(0xFFEF4444);
+  
+  // Card
+  static const Color card = Color(0xFFFFFFFF);
+  static const Color cardForeground = Color(0xFF0F172A);
+  
+  // Border
+  static const Color border = Color(0xFFE2E8F0);
+  
   // Status colors
-  static const Color success = Color(0xFF7BCFB5);
-  static const Color warning = Color(0xFFFFD93D);
-  static const Color error = Color(0xFFFF7B7B);
-
-  // Unread/Read badge colors
-  static const Color unreadBadge = Color(0xFFFF7B7B);
-  static const Color readBadge = Color(0xFF7BCFB5);
+  static const Color success = Color(0xFF10B981);
+  static const Color warning = Color(0xFFF59E0B);
+  
+  // Badge colors
+  static const Color unreadBadge = Color(0xFF3730A3);
+  static const Color readBadge = Color(0xFF64748B);
 }
 
 /// App-wide theme configuration
@@ -45,50 +53,55 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      
       colorScheme: ColorScheme.light(
         primary: AppColors.primary,
         secondary: AppColors.secondary,
         tertiary: AppColors.accent,
-        surface: AppColors.surfaceLight,
+        surface: AppColors.background,
         error: AppColors.error,
+        onPrimary: AppColors.primaryForeground,
+        onSecondary: AppColors.secondaryForeground,
+        onSurface: AppColors.foreground,
       ),
-      scaffoldBackgroundColor: AppColors.backgroundLight,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.backgroundLight,
-        foregroundColor: AppColors.textPrimaryLight,
+      
+      scaffoldBackgroundColor: AppColors.background,
+      
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.foreground,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 20,
+        centerTitle: false,
+        titleTextStyle: GoogleFonts.dmSerifDisplay(
+          fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryLight,
+          color: AppColors.foreground,
         ),
       ),
+      
       cardTheme: CardThemeData(
-        color: AppColors.surfaceLight,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
+        color: AppColors.card,
+        elevation: 0,
+        shadowColor: Colors.black.withOpacity(0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: AppColors.border.withOpacity(0.5),
+            width: 1,
+          ),
         ),
       ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        shape: CircleBorder(),
-      ),
+      
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surfaceLight,
+        fillColor: AppColors.card,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade200),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -99,191 +112,110 @@ class AppTheme {
           vertical: 14,
         ),
       ),
+      
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.primaryForeground,
+        elevation: 8,
+        shape: CircleBorder(),
+      ),
+      
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 2,
+          foregroundColor: AppColors.primaryForeground,
+          elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(
-            fontFamily: 'NotoSansJP',
+          textStyle: GoogleFonts.instrumentSans(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
+      
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: const TextStyle(
-            fontFamily: 'NotoSansJP',
+          textStyle: GoogleFonts.instrumentSans(
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
         ),
       ),
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
+      
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: AppColors.background,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.mutedForeground,
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: GoogleFonts.instrumentSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: GoogleFonts.instrumentSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.dmSerifDisplay(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryLight,
+          color: AppColors.foreground,
         ),
-        headlineMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
+        headlineMedium: GoogleFonts.dmSerifDisplay(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryLight,
+          color: AppColors.foreground,
         ),
-        titleLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
+        titleLarge: GoogleFonts.dmSerifDisplay(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.foreground,
+        ),
+        titleMedium: GoogleFonts.dmSerifDisplay(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryLight,
+          color: AppColors.foreground,
         ),
-        titleMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
+        bodyLarge: GoogleFonts.instrumentSans(
           fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimaryLight,
+          color: AppColors.foreground,
         ),
-        bodyLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 16,
-          color: AppColors.textPrimaryLight,
-        ),
-        bodyMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
+        bodyMedium: GoogleFonts.instrumentSans(
           fontSize: 14,
-          color: AppColors.textSecondaryLight,
+          color: AppColors.mutedForeground,
         ),
-        bodySmall: TextStyle(
-          fontFamily: 'NotoSansJP',
+        bodySmall: GoogleFonts.instrumentSans(
           fontSize: 12,
-          color: AppColors.textSecondaryLight,
+          color: AppColors.mutedForeground,
+        ),
+        labelLarge: GoogleFonts.instrumentSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.foreground,
+        ),
+        labelMedium: GoogleFonts.instrumentSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.mutedForeground,
+        ),
+        labelSmall: GoogleFonts.instrumentSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: AppColors.mutedForeground,
+          letterSpacing: 0.5,
         ),
       ),
     );
   }
 
   static ThemeData get dark {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.dark(
-        primary: AppColors.primaryLight,
-        secondary: AppColors.secondaryLight,
-        tertiary: AppColors.accent,
-        surface: AppColors.surfaceDark,
-        error: AppColors.error,
-      ),
-      scaffoldBackgroundColor: AppColors.backgroundDark,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.backgroundDark,
-        foregroundColor: AppColors.textPrimaryDark,
-        elevation: 0,
-        centerTitle: true,
-        titleTextStyle: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryDark,
-        ),
-      ),
-      cardTheme: CardThemeData(
-        color: AppColors.surfaceDark,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.3),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: AppColors.primaryLight,
-        foregroundColor: AppColors.backgroundDark,
-        elevation: 4,
-        shape: CircleBorder(),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.surfaceDark,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade800),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryLight, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryLight,
-          foregroundColor: AppColors.backgroundDark,
-          elevation: 2,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: const TextStyle(
-            fontFamily: 'NotoSansJP',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 32,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryDark,
-        ),
-        headlineMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryDark,
-        ),
-        titleLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryDark,
-        ),
-        titleMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimaryDark,
-        ),
-        bodyLarge: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 16,
-          color: AppColors.textPrimaryDark,
-        ),
-        bodyMedium: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 14,
-          color: AppColors.textSecondaryDark,
-        ),
-        bodySmall: TextStyle(
-          fontFamily: 'NotoSansJP',
-          fontSize: 12,
-          color: AppColors.textSecondaryDark,
-        ),
-      ),
-    );
+    return light;
   }
 }
