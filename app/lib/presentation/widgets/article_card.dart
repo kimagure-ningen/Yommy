@@ -1,13 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:iconify_flutter/iconify_flutter.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../data/models/article.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/models/article.dart';
 
-/// Sleek article card with swipe actions
+/// Card widget for displaying an article
 class ArticleCard extends StatelessWidget {
   final Article article;
   final VoidCallback onTap;
@@ -31,270 +31,297 @@ class ArticleCard extends StatelessWidget {
       endActionPane: ActionPane(
         motion: const BehindMotion(),
         children: [
-          SlidableAction(
+          CustomSlidableAction(
             onPressed: (_) => onToggleRead(),
-            backgroundColor: AppColors.success,
+            backgroundColor: isRead ? AppColors.unreadAccent : AppColors.readAccent,
             foregroundColor: Colors.white,
-            icon: Icons.check_circle,
-            label: isRead ? 'Unread' : 'Read',
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+            padding: const EdgeInsets.all(12),
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PhosphorIcon(
+                  isRead 
+                      ? PhosphorIcons.arrowCounterClockwise(PhosphorIconsStyle.bold)
+                      : PhosphorIcons.check(PhosphorIconsStyle.bold),
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isRead ? '未読に' : '読了',
+                  style: GoogleFonts.instrumentSans(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SlidableAction(
+          CustomSlidableAction(
             onPressed: (_) => onDelete(),
-            backgroundColor: AppColors.destructive,
+            backgroundColor: Colors.red.shade400,
             foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Delete',
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(16)),
+            padding: const EdgeInsets.all(12),
+            borderRadius: const BorderRadius.horizontal(right: Radius.circular(12)),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PhosphorIcon(
+                  PhosphorIcons.trash(PhosphorIconsStyle.bold),
+                  color: Colors.white,
+                  size: 24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '削除',
+                  style: GoogleFonts.instrumentSans(
+                    fontSize: 11,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      child: GestureDetector(
+      child: InkWell(
         onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppColors.border.withOpacity(0.5),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.neutral100, width: 1),
           ),
-          child: Stack(
-            children: [
-              if (!isRead)
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 4,
-                    decoration: const BoxDecoration(
-                      color: AppColors.accentForeground,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomLeft: Radius.circular(16),
-                      ),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Left accent bar
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: isRead ? AppColors.readAccent : AppColors.unreadAccent,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
                   ),
                 ),
-              
-              Opacity(
-                opacity: isRead ? 0.7 : 1.0,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                
+                // Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header row: favicon + source + menu
+                        Row(
                           children: [
-                            _buildSourceRow(),
-                            const SizedBox(height: 8),
-                            
-                            Text(
-                              article.title,
-                              style: GoogleFonts.dmSerifDisplay(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.cardForeground,
-                                decoration: isRead ? TextDecoration.lineThrough : null,
-                                decorationColor: AppColors.mutedForeground,
+                            // Favicon placeholder
+                            Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: AppColors.neutral100,
+                                borderRadius: BorderRadius.circular(4),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                              child: Center(
+                                child: PhosphorIcon(
+                                  PhosphorIcons.globe(PhosphorIconsStyle.regular),
+                                  color: AppColors.textSecondary,
+                                  size: 10,
+                                ),
+                              ),
                             ),
                             
-                            if (article.description != null) ...[
-                              const SizedBox(height: 8),
+                            const SizedBox(width: 8),
+                            
+                            // Source name
+                            if (article.isFromKnownSource)
                               Text(
-                                article.description!,
+                                article.sourceName!,
                                 style: GoogleFonts.instrumentSans(
-                                  fontSize: 14,
-                                  color: AppColors.mutedForeground,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                            
-                            if (article.memo != null) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFF9E6),
-                                  border: Border.all(
-                                    color: const Color(0xFFFFE4B5),
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Iconify(
-                                      'solar:notes-bold',
-                                      size: 14,
-                                      color: Color(0xFFF59E0B),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        article.memo!,
-                                        style: GoogleFonts.instrumentSans(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          fontStyle: FontStyle.italic,
-                                          color: const Color(0xFF92400E),
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w400,
                                 ),
                               ),
-                            ],
                             
-                            const SizedBox(height: 12),
+                            const SizedBox(width: 8),
                             
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isRead ? AppColors.secondary : AppColors.accent,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    isRead ? 'Read' : 'Unread',
-                                    style: GoogleFonts.instrumentSans(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: isRead
-                                          ? AppColors.mutedForeground
-                                          : AppColors.accentForeground,
-                                    ),
-                                  ),
-                                ),
-                                const Spacer(),
-                                IconButton(
-                                  onPressed: () {},
-                                  icon: Iconify(
-                                    'solar:menu-dots-bold',
-                                    size: 16,
-                                    color: AppColors.mutedForeground,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
+                            // Timestamp
+                            Text(
+                              _formatDate(article.createdAt),
+                              style: GoogleFonts.instrumentSans(
+                                fontSize: 12,
+                                color: AppColors.textTertiary,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            
+                            const Spacer(),
+                            
+                            // Menu button
+                            PhosphorIcon(
+                              PhosphorIcons.dotsThree(PhosphorIconsStyle.bold),
+                              color: AppColors.textSecondary,
+                              size: 20,
                             ),
                           ],
                         ),
-                      ),
-                      
-                      if (article.hasThumbnail) ...[
-                        const SizedBox(width: 16),
-                        _buildThumbnail(),
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Title
+                        Text(
+                          article.title,
+                          style: GoogleFonts.dmSerifDisplay(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textPrimary,
+                            height: 1.3,
+                            decoration: isRead ? TextDecoration.lineThrough : null,
+                            decorationColor: AppColors.textSecondary,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        
+                        // Description
+                        if (article.description != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            article.description!,
+                            style: GoogleFonts.instrumentSans(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              height: 1.5,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        
+                        // Memo
+                        if (article.memo != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.neutral50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.neutral100,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                PhosphorIcon(
+                                  PhosphorIcons.note(PhosphorIconsStyle.regular),
+                                  color: AppColors.textSecondary,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    article.memo!,
+                                    style: GoogleFonts.instrumentSans(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        
+                        const SizedBox(height: 12),
+                        
+                        // Status badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isRead
+                                ? AppColors.readAccent.withOpacity(0.1)
+                                : AppColors.unreadAccent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PhosphorIcon(
+                                isRead
+                                    ? PhosphorIcons.checkCircle(PhosphorIconsStyle.fill)
+                                    : PhosphorIcons.circle(PhosphorIconsStyle.regular),
+                                color: isRead ? AppColors.readAccent : AppColors.unreadAccent,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isRead ? '読了' : '未読',
+                                style: GoogleFonts.instrumentSans(
+                                  fontSize: 11,
+                                  color: isRead ? AppColors.readAccent : AppColors.unreadAccent,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                
+                // Thumbnail
+                if (article.hasThumbnail)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    child: SizedBox(
+                      width: 100,
+                      child: CachedNetworkImage(
+                        imageUrl: article.thumbnailUrl!,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => _buildPlaceholder(),
+                        errorWidget: (_, __, ___) => _buildPlaceholder(),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSourceRow() {
-    return Row(
-      children: [
-        if (article.isFromKnownSource)
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Iconify(
-                'solar:bookmark-bold',
-                size: 10,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-        if (article.isFromKnownSource) const SizedBox(width: 8),
-        
-        Expanded(
-          child: Text(
-            article.sourceName ?? 'Unknown',
-            style: GoogleFonts.instrumentSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.mutedForeground,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        
-        Text(
-          _formatDate(article.createdAt),
-          style: GoogleFonts.instrumentSans(
-            fontSize: 10,
-            color: AppColors.mutedForeground,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildThumbnail() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        width: 96,
-        height: 96,
-        child: CachedNetworkImage(
-          imageUrl: article.thumbnailUrl!,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => Container(
-            color: AppColors.secondary,
-            child: Center(
-              child: Iconify(
-                'solar:image-bold',
-                size: 32,
-                color: AppColors.mutedForeground,
-              ),
-            ),
-          ),
-          errorWidget: (_, __, ___) => Container(
-            color: AppColors.secondary,
-            child: Center(
-              child: Iconify(
-                'solar:image-bold',
-                size: 32,
-                color: AppColors.mutedForeground,
-              ),
-            ),
-          ),
+  Widget _buildPlaceholder() {
+    return Container(
+      color: AppColors.neutral100,
+      child: Center(
+        child: PhosphorIcon(
+          PhosphorIcons.article(PhosphorIconsStyle.regular),
+          size: 32,
+          color: AppColors.textTertiary,
         ),
       ),
     );
@@ -304,14 +331,14 @@ class ArticleCard extends StatelessWidget {
     final now = DateTime.now();
     final diff = now.difference(date);
 
-    if (diff.inHours < 1) {
-      return '${diff.inMinutes}m ago';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}h ago';
+    if (diff.inDays == 0) {
+      return '今日';
     } else if (diff.inDays == 1) {
-      return 'Yesterday';
+      return '昨日';
     } else if (diff.inDays < 7) {
-      return '${diff.inDays} days ago';
+      return '${diff.inDays}日前';
+    } else if (diff.inDays < 30) {
+      return '${(diff.inDays / 7).floor()}週間前';
     } else {
       return '${date.month}/${date.day}';
     }

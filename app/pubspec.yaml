@@ -33,7 +33,7 @@ dependencies:
   # UI
   cached_network_image: ^3.3.1
   flutter_slidable: ^3.0.1
-  iconify_flutter: ^0.0.5
+  phosphor_flutter: ^2.1.0
   google_fonts: ^6.1.0
   
   # Utils
@@ -54,3 +54,11 @@ flutter:
 
   assets:
     - assets/images/
+
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: assets/fonts/NotoSansJP-Regular.ttf
+        - asset: assets/fonts/NotoSansJP-Bold.ttf
+          weight: 700
+  

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:iconify_flutter/iconify_flutter.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/providers/providers.dart';
@@ -21,8 +21,9 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
-  int _selectedTabIndex = 0;
-  String _searchQuery = '';
+  int _selectedTab = 0;
+  bool _showSearch = false;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -66,7 +68,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$addedCount 件の記事を追加しました！'),
-          backgroundColor: Theme.of(context).colorScheme.secondary,
+          backgroundColor: AppColors.accent,
         ),
       );
     }
@@ -74,239 +76,207 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
+    if (_selectedTab == 1) {
+      return _buildFavoritesScreen();
+    } else if (_selectedTab == 2) {
+      return _buildProfileScreen();
+    }
+    return _buildHomeScreen();
+  }
+
+  Widget _buildHomeScreen() {
     final articles = ref.watch(filteredArticlesProvider);
     final counts = ref.watch(articleCountsProvider);
 
-    final filteredArticles = _searchQuery.isEmpty
-        ? articles
-        : articles.where((article) {
-            final query = _searchQuery.toLowerCase();
-            return article.title.toLowerCase().contains(query) ||
-                (article.description?.toLowerCase().contains(query) ?? false);
-          }).toList();
-
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
-              child: _buildStatsCards(counts),
-            ),
+            // Header
+            _buildHeader(context, counts),
+
+            // Filter tabs
             const Padding(
-              padding: EdgeInsets.fromLTRB(24, 0, 24, 16),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               child: FilterChips(),
             ),
+
+            // Article list
             Expanded(
-              child: filteredArticles.isEmpty
+              child: articles.isEmpty
                   ? const EmptyState()
-                  : _buildArticleList(filteredArticles),
+                  : _buildArticleList(context, ref, articles),
             ),
           ],
         ),
       ),
+      bottomNavigationBar: _buildBottomNav(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddArticle(context),
-        child: Iconify(
-          'solar:add-circle-bold',
-          size: 32,
-          color: AppColors.primaryForeground,
+        backgroundColor: AppColors.accent,
+        child: PhosphorIcon(
+          PhosphorIcons.plus(PhosphorIconsStyle.bold),
+          color: AppColors.textPrimary,
+          size: 24,
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context, ArticleCounts counts) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.border.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Center(
-              child: Iconify(
-                'solar:bookmark-bold',
-                size: 20,
-                color: AppColors.primaryForeground,
+          // Top row: Logo + Actions
+          Row(
+            children: [
+              // Logo
+              Text(
+                'Yommy',
+                style: GoogleFonts.dmSerifDisplay(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
               ),
-            ),
+              const Spacer(),
+              
+              // Search button
+              IconButton(
+                onPressed: () => _showSearchDialog(context),
+                icon: PhosphorIcon(
+                  PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
+                  color: AppColors.textSecondary,
+                  size: 24,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              
+              const SizedBox(width: 12),
+              
+              // Settings button
+              IconButton(
+                onPressed: () => _openSettings(context),
+                icon: PhosphorIcon(
+                  PhosphorIcons.gear(PhosphorIconsStyle.regular),
+                  color: AppColors.textSecondary,
+                  size: 24,
+                ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            'Yommy',
-            style: GoogleFonts.dmSerifDisplay(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.foreground,
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () => _showSearchDialog(),
-            icon: Iconify(
-              'solar:magnifer-linear',
-              size: 24,
-              color: AppColors.mutedForeground,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.transparent,
-            ),
-          ),
-          IconButton(
-            onPressed: () => _openSettings(context),
-            icon: Iconify(
-              'solar:settings-bold',
-              size: 24,
-              color: AppColors.mutedForeground,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.transparent,
-            ),
+          
+          const SizedBox(height: 24),
+          
+          // Stats cards
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  '未読',
+                  counts.unread.toString(),
+                  AppColors.unreadAccent,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  '読了',
+                  counts.read.toString(),
+                  AppColors.readAccent,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  context,
+                  '合計',
+                  counts.total.toString(),
+                  AppColors.neutral200,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsCards(ArticleCounts counts) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: 'solar:documents-bold',
-            iconColor: AppColors.primary,
-            iconBgColor: AppColors.secondary,
-            count: counts.total,
-            label: 'TOTAL',
-            countColor: AppColors.foreground,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: 'solar:bookmark-circle-bold',
-            iconColor: AppColors.accentForeground,
-            iconBgColor: AppColors.accent.withOpacity(0.2),
-            count: counts.unread,
-            label: 'UNREAD',
-            countColor: AppColors.accentForeground,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: 'solar:check-circle-bold',
-            iconColor: AppColors.success,
-            iconBgColor: const Color(0xFFDCFCE7),
-            count: counts.read,
-            label: 'READ',
-            countColor: AppColors.success,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required String icon,
-    required Color iconColor,
-    required Color iconBgColor,
-    required int count,
-    required String label,
-    required Color countColor,
-  }) {
+  Widget _buildStatCard(BuildContext context, String label, String value, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.border.withOpacity(0.4),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.neutral100, width: 1),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: iconBgColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Iconify(
-                icon,
-                size: 16,
-                color: iconColor,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            count.toString(),
-            style: GoogleFonts.dmSerifDisplay(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: countColor,
-            ),
-          ),
-          const SizedBox(height: 2),
           Text(
             label,
             style: GoogleFonts.instrumentSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: AppColors.mutedForeground,
-              letterSpacing: 0.5,
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w400,
             ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Container(
+                width: 3,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                value,
+                style: GoogleFonts.dmSerifDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildArticleList(List<dynamic> articles) {
+  Widget _buildArticleList(BuildContext context, WidgetRef ref, List<dynamic> articles) {
     return RefreshIndicator(
       onRefresh: () async {
         ref.read(articlesProvider.notifier).refresh();
       },
-      color: AppColors.primary,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
         itemCount: articles.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
           final article = articles[index];
-          return ArticleCard(
-            article: article,
-            onTap: () => _openArticle(article),
-            onDelete: () => _deleteArticle(article.id),
-            onToggleRead: () => _toggleRead(article),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ArticleCard(
+              article: article,
+              onTap: () => _openArticle(context, ref, article),
+              onDelete: () => _deleteArticle(context, ref, article.id),
+              onToggleRead: () => _toggleRead(ref, article),
+            ),
           );
         },
       ),
@@ -316,37 +286,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   Widget _buildBottomNav() {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: Colors.white,
         border: Border(
-          top: BorderSide(
-            color: AppColors.border,
-            width: 1,
-          ),
+          top: BorderSide(color: AppColors.neutral100, width: 1),
         ),
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: 64,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
-                icon: 'solar:home-2-bold',
-                label: 'Home',
-                isSelected: _selectedTabIndex == 0,
-                onTap: () => setState(() => _selectedTabIndex = 0),
+                icon: PhosphorIcons.house(PhosphorIconsStyle.regular),
+                iconFilled: PhosphorIcons.house(PhosphorIconsStyle.fill),
+                label: 'ホーム',
+                index: 0,
               ),
               _buildNavItem(
-                icon: 'solar:star-bold',
-                label: 'Favorites',
-                isSelected: _selectedTabIndex == 1,
-                onTap: () => setState(() => _selectedTabIndex = 1),
+                icon: PhosphorIcons.heart(PhosphorIconsStyle.regular),
+                iconFilled: PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                label: 'お気に入り',
+                index: 1,
               ),
               _buildNavItem(
-                icon: 'solar:user-bold',
-                label: 'Profile',
-                isSelected: _selectedTabIndex == 2,
-                onTap: () => setState(() => _selectedTabIndex = 2),
+                icon: PhosphorIcons.user(PhosphorIconsStyle.regular),
+                iconFilled: PhosphorIcons.user(PhosphorIconsStyle.fill),
+                label: 'プロフィール',
+                index: 2,
               ),
             ],
           ),
@@ -356,29 +323,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   }
 
   Widget _buildNavItem({
-    required String icon,
+    required PhosphorIconData icon,
+    required PhosphorIconData iconFilled,
     required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
+    required int index,
   }) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
+    final isSelected = _selectedTab == index;
+    
+    return InkWell(
+      onTap: () => setState(() => _selectedTab = index),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Iconify(
-              icon,
+            PhosphorIcon(
+              isSelected ? iconFilled : icon,
+              color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
               size: 24,
-              color: isSelected ? AppColors.primary : AppColors.mutedForeground,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: GoogleFonts.instrumentSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.mutedForeground,
+                fontSize: 12,
+                color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w500 : FontWeight.w400,
               ),
             ),
           ],
@@ -387,86 +358,187 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     );
   }
 
-  void _showSearchDialog() {
+  void _showSearchDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Search Articles',
-          style: GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.bold),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: '記事を検索...',
+                        hintStyle: GoogleFonts.instrumentSans(
+                          color: AppColors.textSecondary,
+                          fontSize: 16,
+                        ),
+                        border: InputBorder.none,
+                      ),
+                      style: GoogleFonts.instrumentSans(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      Navigator.pop(context);
+                    },
+                    icon: PhosphorIcon(
+                      PhosphorIcons.x(PhosphorIconsStyle.regular),
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        content: TextField(
-          autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Enter keywords...',
-            prefixIcon: Icon(Icons.search),
-          ),
-          onChanged: (value) {
-            setState(() => _searchQuery = value);
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() => _searchQuery = '');
-              Navigator.pop(context);
-            },
-            child: const Text('Clear'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
       ),
+    );
+  }
+
+  Widget _buildFavoritesScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.heart(PhosphorIconsStyle.fill),
+                color: AppColors.textSecondary,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'お気に入り機能は準備中です',
+                style: GoogleFonts.instrumentSans(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildProfileScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.user(PhosphorIconsStyle.fill),
+                color: AppColors.textSecondary,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'プロフィール機能は準備中です',
+                style: GoogleFonts.instrumentSans(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   void _openAddArticle(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const AddArticleScreen()),
+      MaterialPageRoute(
+        builder: (context) => const AddArticleScreen(),
+      ),
     );
   }
 
   void _openSettings(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => const SettingsScreen()),
+      MaterialPageRoute(
+        builder: (context) => const SettingsScreen(),
+      ),
     );
   }
 
-  void _openArticle(dynamic article) {
+  void _openArticle(BuildContext context, WidgetRef ref, dynamic article) {
     ref.read(articlesProvider.notifier).markAsRead(article.id);
   }
 
-  void _deleteArticle(String id) {
+  void _deleteArticle(BuildContext context, WidgetRef ref, String id) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          'Delete Article?',
-          style: GoogleFonts.dmSerifDisplay(fontWeight: FontWeight.bold),
+          '削除しますか？',
+          style: GoogleFonts.dmSerifDisplay(
+            fontSize: 20,
+            color: AppColors.textPrimary,
+          ),
         ),
-        content: const Text('This article will be removed from your list.'),
+        content: Text(
+          'この記事をリストから削除します。',
+          style: GoogleFonts.instrumentSans(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(
+              'キャンセル',
+              style: GoogleFonts.instrumentSans(
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               ref.read(articlesProvider.notifier).deleteArticle(id);
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.destructive),
-            child: const Text('Delete'),
+            child: Text(
+              '削除',
+              style: GoogleFonts.instrumentSans(
+                color: Colors.red,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _toggleRead(dynamic article) {
+  void _toggleRead(WidgetRef ref, dynamic article) {
     final notifier = ref.read(articlesProvider.notifier);
     if (article.status.name == 'unread') {
       notifier.markAsRead(article.id);
