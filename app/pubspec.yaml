@@ -30,6 +30,12 @@ dependencies:
   # Share Intent (receive from other apps)
   receive_sharing_intent: ^1.6.7
 
+  # WebView
+  webview_flutter: ^4.4.4
+  
+  # HTML Parsing (for summarization)
+  html: ^0.15.4
+
   # UI
   cached_network_image: ^3.3.1
   flutter_slidable: ^3.0.1
@@ -61,4 +67,4 @@ flutter:
         - asset: assets/fonts/NotoSansJP-Regular.ttf
         - asset: assets/fonts/NotoSansJP-Bold.ttf
           weight: 700
-  
+          

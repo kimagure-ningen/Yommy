@@ -161,6 +161,71 @@ class ArticleCounts {
 }
 
 // =============================================================================
+// Search Functionality
+// =============================================================================
+
+/// Search query state
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Filtered articles based on current filter and search
+final filteredAndSearchedArticlesProvider = Provider<List<Article>>((ref) {
+  final filter = ref.watch(articleFilterProvider);
+  final searchQuery = ref.watch(searchQueryProvider).toLowerCase();
+  final articles = ref.watch(articlesProvider);
+
+  // First, filter by status
+  List<Article> filtered;
+  switch (filter) {
+    case ArticleFilter.all:
+      filtered = articles;
+      break;
+    case ArticleFilter.unread:
+      filtered = articles.where((a) => a.status == ArticleStatus.unread).toList();
+      break;
+    case ArticleFilter.read:
+      filtered = articles.where((a) => a.status == ArticleStatus.read).toList();
+      break;
+  }
+
+  // Then, apply search filter
+  if (searchQuery.isEmpty) {
+    return filtered;
+  }
+
+  return filtered.where((article) {
+    // Search in title
+    if (article.title.toLowerCase().contains(searchQuery)) {
+      return true;
+    }
+    
+    // Search in description
+    if (article.description != null &&
+        article.description!.toLowerCase().contains(searchQuery)) {
+      return true;
+    }
+    
+    // Search in URL
+    if (article.url.toLowerCase().contains(searchQuery)) {
+      return true;
+    }
+    
+    // Search in memo
+    if (article.memo != null &&
+        article.memo!.toLowerCase().contains(searchQuery)) {
+      return true;
+    }
+    
+    // Search in source name
+    if (article.sourceName != null &&
+        article.sourceName!.toLowerCase().contains(searchQuery)) {
+      return true;
+    }
+    
+    return false;
+  }).toList();
+});
+
+// =============================================================================
 // Reminder Settings State
 // =============================================================================
 
@@ -235,7 +300,7 @@ final articleFilterProvider = StateProvider<ArticleFilter>((ref) {
   return ArticleFilter.all;
 });
 
-/// Filtered articles based on current filter
+/// Filtered articles based on current filter (without search)
 final filteredArticlesProvider = Provider<List<Article>>((ref) {
   final filter = ref.watch(articleFilterProvider);
   final articles = ref.watch(articlesProvider);

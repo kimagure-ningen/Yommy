@@ -10,6 +10,7 @@ import '../widgets/article_card.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/filter_chips.dart';
 import 'add_article_screen.dart';
+import 'article_detail_screen.dart';
 import 'settings_screen.dart';
 
 /// Main home screen showing article list
@@ -22,7 +23,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObserver {
   int _selectedTab = 0;
-  bool _showSearch = false;
   final _searchController = TextEditingController();
 
   @override
@@ -77,15 +77,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   @override
   Widget build(BuildContext context) {
     if (_selectedTab == 1) {
-      return _buildFavoritesScreen();
-    } else if (_selectedTab == 2) {
       return _buildProfileScreen();
     }
     return _buildHomeScreen();
   }
 
   Widget _buildHomeScreen() {
-    final articles = ref.watch(filteredArticlesProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+    final articles = ref.watch(filteredAndSearchedArticlesProvider);
     final counts = ref.watch(articleCountsProvider);
 
     return Scaffold(
@@ -96,6 +95,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
             // Header
             _buildHeader(context, counts),
 
+            // Search bar (if active)
+            if (searchQuery.isNotEmpty) _buildSearchBar(),
+
             // Filter tabs
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -105,7 +107,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
             // Article list
             Expanded(
               child: articles.isEmpty
-                  ? const EmptyState()
+                  ? searchQuery.isNotEmpty
+                      ? _buildNoSearchResults()
+                      : const EmptyState()
                   : _buildArticleList(context, ref, articles),
             ),
           ],
@@ -211,6 +215,51 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     );
   }
 
+  Widget _buildSearchBar() {
+    final searchQuery = ref.watch(searchQueryProvider);
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppColors.backgroundWhite,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent, width: 2),
+      ),
+      child: Row(
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
+            color: AppColors.accent,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              searchQuery,
+              style: GoogleFonts.instrumentSans(
+                fontSize: 14,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              ref.read(searchQueryProvider.notifier).state = '';
+            },
+            icon: PhosphorIcon(
+              PhosphorIcons.x(PhosphorIconsStyle.regular),
+              color: AppColors.textSecondary,
+              size: 20,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatCard(BuildContext context, String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -273,12 +322,35 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
             padding: const EdgeInsets.only(bottom: 12),
             child: ArticleCard(
               article: article,
-              onTap: () => _openArticle(context, ref, article),
+              onTap: () => _openArticle(context, article),
               onDelete: () => _deleteArticle(context, ref, article.id),
               onToggleRead: () => _toggleRead(ref, article),
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildNoSearchResults() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.magnifyingGlass(PhosphorIconsStyle.regular),
+            color: AppColors.textSecondary,
+            size: 64,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '検索結果が見つかりませんでした',
+            style: GoogleFonts.instrumentSans(
+              fontSize: 16,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -304,16 +376,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                 index: 0,
               ),
               _buildNavItem(
-                icon: PhosphorIcons.heart(PhosphorIconsStyle.regular),
-                iconFilled: PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                label: 'お気に入り',
-                index: 1,
-              ),
-              _buildNavItem(
                 icon: PhosphorIcons.user(PhosphorIconsStyle.regular),
                 iconFilled: PhosphorIcons.user(PhosphorIconsStyle.fill),
                 label: 'プロフィール',
-                index: 2,
+                index: 1,
               ),
             ],
           ),
@@ -334,7 +400,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
       onTap: () => setState(() => _selectedTab = index),
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -359,9 +425,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
   }
 
   void _showSearchDialog(BuildContext context) {
+    _searchController.clear();
+    
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -392,12 +460,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
                         color: AppColors.textPrimary,
                         fontSize: 16,
                       ),
+                      onSubmitted: (query) {
+                        if (query.trim().isNotEmpty) {
+                          ref.read(searchQueryProvider.notifier).state = query.trim();
+                          Navigator.pop(dialogContext);
+                        }
+                      },
                     ),
                   ),
                   IconButton(
                     onPressed: () {
                       _searchController.clear();
-                      Navigator.pop(context);
+                      Navigator.pop(dialogContext);
                     },
                     icon: PhosphorIcon(
                       PhosphorIcons.x(PhosphorIconsStyle.regular),
@@ -411,35 +485,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildFavoritesScreen() {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              PhosphorIcon(
-                PhosphorIcons.heart(PhosphorIconsStyle.fill),
-                color: AppColors.textSecondary,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'お気に入り機能は準備中です',
-                style: GoogleFonts.instrumentSans(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -488,8 +533,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
     );
   }
 
-  void _openArticle(BuildContext context, WidgetRef ref, dynamic article) {
-    ref.read(articlesProvider.notifier).markAsRead(article.id);
+  void _openArticle(BuildContext context, dynamic article) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ArticleDetailScreen(article: article),
+      ),
+    );
   }
 
   void _deleteArticle(BuildContext context, WidgetRef ref, String id) {

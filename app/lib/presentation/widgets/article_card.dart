@@ -32,7 +32,9 @@ class ArticleCard extends StatelessWidget {
         motion: const BehindMotion(),
         children: [
           CustomSlidableAction(
-            onPressed: (_) => onToggleRead(),
+            onPressed: (_) {
+              onToggleRead();
+            },
             backgroundColor: isRead ? AppColors.unreadAccent : AppColors.readAccent,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.all(12),
@@ -60,7 +62,9 @@ class ArticleCard extends StatelessWidget {
             ),
           ),
           CustomSlidableAction(
-            onPressed: (_) => onDelete(),
+            onPressed: (_) {
+              onDelete();
+            },
             backgroundColor: Colors.red.shade400,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.all(12),
