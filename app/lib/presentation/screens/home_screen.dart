@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_theme.dart';
+import '../../data/models/article.dart';
 import '../../services/share_intent_service.dart';
 import '../widgets/article_card.dart';
 import '../widgets/empty_state.dart';
@@ -589,7 +590,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
 
   void _toggleRead(WidgetRef ref, dynamic article) {
     final notifier = ref.read(articlesProvider.notifier);
-    if (article.status.name == 'unread') {
+    if (article.status == ArticleStatus.unread) {
       notifier.markAsRead(article.id);
     } else {
       notifier.markAsUnread(article.id);
