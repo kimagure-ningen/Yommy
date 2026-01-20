@@ -41,6 +41,7 @@ dependencies:
   flutter_slidable: ^3.0.1
   phosphor_flutter: ^2.1.0
   google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
   
   # Utils
   uuid: ^4.3.3
@@ -60,6 +61,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/icons/
 
   fonts:
     - family: NotoSansJP
@@ -67,4 +69,3 @@ flutter:
         - asset: assets/fonts/NotoSansJP-Regular.ttf
         - asset: assets/fonts/NotoSansJP-Bold.ttf
           weight: 700
-          
