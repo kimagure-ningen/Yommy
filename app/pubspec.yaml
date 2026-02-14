@@ -55,6 +55,8 @@ dev_dependencies:
   hive_generator: ^2.0.1
   build_runner: ^2.4.8
   riverpod_generator: ^2.3.9
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
@@ -69,3 +71,19 @@ flutter:
         - asset: assets/fonts/NotoSansJP-Regular.ttf
         - asset: assets/fonts/NotoSansJP-Bold.ttf
           weight: 700
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app-icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  background_color: "#1E2835"
+  
+# Splash Screen Configuration (iOS)
+flutter_native_splash:
+  color: "#1E2835"
+  image: "assets/icons/app-icon.png"
+  android: false
+  ios: true
