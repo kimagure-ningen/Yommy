@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yommy - プライバシーポリシー / Privacy Policy</title>
+  <meta name="description" content="Yommy アプリのプライバシーポリシー / Privacy Policy for the Yommy app">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <style>
+    :root {
+      --text-primary: #1A1A1A;
+      --text-secondary: #6B6B6B;
+      --text-tertiary: #9B9B9B;
+      --bg-light: #FAFAFA;
+      --bg-white: #FFFFFF;
+      --neutral-50: #F8F8F8;
+      --neutral-100: #E8E8E8;
+      --neutral-200: #D1D1D1;
+      --accent: #FFB84D;
+      --accent-soft: #FFF4E0;
+      --accent-deep: #E8A030;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Instrument Sans', 'Noto Sans JP', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-primary);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(250, 250, 250, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--neutral-100);
+    }
+
+    .header-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: var(--neutral-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* TODO: Replace with actual logo image */
+    .logo-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .logo-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      color: var(--text-tertiary);
+      background: var(--neutral-100);
+    }
+
+    .logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .lang-toggle {
+      display: flex;
+      gap: 2px;
+      background: var(--neutral-100);
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: 'Instrument Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: var(--bg-white);
+      color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .lang-btn:hover:not(.active) {
+      color: var(--text-primary);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 64px 24px 40px;
+    }
+
+    .hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(26px, 5vw, 36px);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    .hero-meta {
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+
+    .hero-divider {
+      width: 48px;
+      height: 2px;
+      background: var(--accent);
+      margin-top: 24px;
+    }
+
+    /* ── Content ── */
+    .content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .policy-card {
+      background: var(--bg-white);
+      border-radius: 16px;
+      padding: clamp(28px, 5vw, 48px);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.03);
+      border: 1px solid var(--neutral-100);
+    }
+
+    .section {
+      margin-bottom: 36px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid var(--neutral-100);
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .section-number {
+      display: inline-block;
+      font-family: 'DM Serif Display', serif;
+      font-size: 13px;
+      color: var(--accent-deep);
+      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .section h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 19px;
+      font-weight: 400;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+
+    .section p {
+      color: var(--text-secondary);
+      font-size: 14.5px;
+      line-height: 1.9;
+      margin-bottom: 10px;
+    }
+
+    .section p:last-child {
+      margin-bottom: 0;
+    }
+
+    .section ul {
+      color: var(--text-secondary);
+      font-size: 14.5px;
+      line-height: 1.9;
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+
+    .section ul li {
+      margin-bottom: 4px;
+    }
+
+    .section ul li::marker {
+      color: var(--neutral-200);
+    }
+
+    .note-box {
+      background: var(--neutral-50);
+      border-left: 2px solid var(--accent);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+    }
+
+    .note-box p {
+      font-size: 13.5px;
+    }
+
+    .contact-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--neutral-200);
+      transition: border-color 0.2s;
+    }
+
+    .contact-link:hover {
+      border-color: var(--text-primary);
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-tertiary);
+      font-size: 13px;
+      border-top: 1px solid var(--neutral-100);
+    }
+
+    /* ── Language visibility ── */
+    [data-lang="en"] {
+      display: none;
+    }
+
+    body.lang-en [data-lang="ja"] {
+      display: none;
+    }
+
+    body.lang-en [data-lang="en"] {
+      display: block;
+    }
+
+    span[data-lang="en"],
+    a[data-lang="en"] {
+      display: none;
+    }
+
+    body.lang-en span[data-lang="ja"],
+    body.lang-en a[data-lang="ja"] {
+      display: none;
+    }
+
+    body.lang-en span[data-lang="en"],
+    body.lang-en a[data-lang="en"] {
+      display: inline;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero {
+      animation: fadeUp 0.5s ease-out;
+    }
+
+    .policy-card {
+      animation: fadeUp 0.5s ease-out 0.1s both;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .header-inner {
+        padding: 12px 16px;
+      }
+
+      .hero {
+        padding: 48px 16px 32px;
+      }
+
+      .content {
+        padding: 0 16px 60px;
+      }
+
+      .policy-card {
+        padding: 24px;
+        border-radius: 12px;
+      }
+
+      .lang-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo">
+        <div class="logo-icon">
+          <img src="assets/icon.png" alt="Yommy">
+        </div>
+        <div class="logo-text">Yommy</div>
+      </a>
+      <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('ja')" id="btn-ja">JA</button>
+        <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>
+      <span data-lang="ja">プライバシーポリシー</span>
+      <span data-lang="en">Privacy Policy</span>
+    </h1>
+    <p class="hero-meta">
+      <span data-lang="ja">最終更新日：2026年2月14日</span>
+      <span data-lang="en">Last updated: February 14, 2026</span>
+    </p>
+    <div class="hero-divider"></div>
+  </div>
+
+  <!-- Content -->
+  <main class="content">
+
+    <!-- ==================== Japanese ==================== -->
+    <div class="policy-card" data-lang="ja">
+
+      <div class="section">
+        <span class="section-number">第1条</span>
+        <h2>はじめに</h2>
+        <p>
+          Yommy（以下「本アプリ」）は、山岸大翔（以下「開発者」）が提供する「あとで読む」記事管理アプリケーションです。本プライバシーポリシー（以下「本ポリシー」）では、本アプリにおける情報の取り扱いについてご説明いたします。
+        </p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第2条</span>
+        <h2>収集する情報</h2>
+        <p>本アプリでは、以下の情報をお客様のデバイス上にローカルで保存いたします。</p>
+        <ul>
+          <li>保存した記事のURL、タイトル、およびサムネイル画像URL</li>
+          <li>記事の閲覧状況（未読・既読）</li>
+          <li>お客様が記入したメモ</li>
+          <li>リマインダー設定（通知時間・頻度）</li>
+        </ul>
+        <div class="note-box">
+          <p>現時点において、これらのデータはすべてお客様のデバイス上にのみ保存されており、外部サーバーへの送信は行っておりません。</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第3条</span>
+        <h2>アナリティクスについて</h2>
+        <p>本アプリでは、今後アプリの品質改善を目的として、Firebase Analytics等のアナリティクスツールを導入する予定です。導入時には以下の情報が収集される場合があります。</p>
+        <ul>
+          <li>アプリの使用状況（画面閲覧、機能の利用頻度等）</li>
+          <li>クラッシュレポートおよびエラーログ</li>
+          <li>デバイス情報（OS、端末モデル等）</li>
+        </ul>
+        <p>これらの情報は匿名化されたものであり、個人を特定するものではありません。アナリティクス導入の際には、本ポリシーを改定いたします。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第4条</span>
+        <h2>アカウント機能およびクラウド同期</h2>
+        <p>将来的に、ユーザーアカウント機能およびクラウド同期機能の追加を予定しております。これらの機能が追加される場合、以下の情報を収集・保存することがあります。</p>
+        <ul>
+          <li>メールアドレス等の認証情報</li>
+          <li>記事データのクラウドバックアップ</li>
+        </ul>
+        <p>これらの機能は任意でご利用いただけるものとし、導入時には本ポリシーを改定のうえ、事前にお知らせいたします。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第5条</span>
+        <h2>データの安全性</h2>
+        <p>開発者は、お客様のデータの保護に最善を尽くしております。現在、すべてのデータはデバイス上にローカルで保存されており、お客様ご自身の端末のセキュリティにより保護されています。</p>
+        <p>将来的にクラウド機能を導入する際には、適切な暗号化およびセキュリティ対策を実施いたします。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第6条</span>
+        <h2>第三者への提供</h2>
+        <p>開発者は、法令に基づく場合を除き、お客様の個人情報を第三者に提供、販売、または共有することはいたしません。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第7条</span>
+        <h2>お子様のプライバシー</h2>
+        <p>本アプリは、13歳未満のお子様を対象としたものではありません。開発者は、13歳未満のお子様から意図的に個人情報を収集することはいたしません。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第8条</span>
+        <h2>本ポリシーの変更</h2>
+        <p>本ポリシーは、機能の追加またはサービス内容の変更に応じて更新される場合があります。重要な変更がある場合には、アプリ内通知または本ページにてお知らせいたします。</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">第9条</span>
+        <h2>お問い合わせ</h2>
+        <p>本ポリシーに関するご質問またはご要望がございましたら、以下の連絡先までお問い合わせください。</p>
+        <p>開発者：山岸大翔（Daito Yamagishi）<br>
+          メール：<a href="mailto:daitoxyamagishi@gmail.com" class="contact-link">daitoxyamagishi@gmail.com</a></p>
+      </div>
+
+    </div>
+
+    <!-- ==================== English ==================== -->
+    <div class="policy-card" data-lang="en">
+
+      <div class="section">
+        <span class="section-number">Article 1</span>
+        <h2>Introduction</h2>
+        <p>Yommy (the "App") is a read-it-later article management application developed by Daito Yamagishi (the
+          "Developer"). This Privacy Policy (the "Policy") describes how information is handled within the App.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 2</span>
+        <h2>Information We Collect</h2>
+        <p>The App stores the following information locally on your device:</p>
+        <ul>
+          <li>Saved article URLs, titles, and thumbnail image URLs</li>
+          <li>Reading status of articles (unread/read)</li>
+          <li>Personal notes you create</li>
+          <li>Reminder settings (notification time and frequency)</li>
+        </ul>
+        <div class="note-box">
+          <p>At present, all data is stored exclusively on your device and is not transmitted to any external servers.
+          </p>
+        </div>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 3</span>
+        <h2>Analytics</h2>
+        <p>In the future, we plan to integrate analytics tools such as Firebase Analytics to improve the quality of the
+          App. When implemented, the following information may be collected:</p>
+        <ul>
+          <li>App usage data (screen views, feature usage frequency, etc.)</li>
+          <li>Crash reports and error logs</li>
+          <li>Device information (OS, device model, etc.)</li>
+        </ul>
+        <p>This information is anonymized and cannot be used to identify individuals. This Policy will be updated when
+          analytics are introduced.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 4</span>
+        <h2>Account Features and Cloud Sync</h2>
+        <p>We plan to add user account and cloud sync features in the future. When these features are introduced, we may
+          collect and store the following information:</p>
+        <ul>
+          <li>Authentication information such as email addresses</li>
+          <li>Cloud backups of your article data</li>
+        </ul>
+        <p>These features will be optional. This Policy will be updated and you will be notified prior to their
+          introduction.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 5</span>
+        <h2>Data Security</h2>
+        <p>The Developer is committed to protecting your data. Currently, all data is stored locally on your device and
+          is protected by your device's own security measures.</p>
+        <p>When cloud features are introduced in the future, appropriate encryption and security measures will be
+          implemented.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 6</span>
+        <h2>Third-Party Disclosure</h2>
+        <p>The Developer does not sell, share, or disclose your personal information to third parties, except as
+          required by applicable law.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 7</span>
+        <h2>Children's Privacy</h2>
+        <p>The App is not intended for children under the age of 13. The Developer does not knowingly collect personal
+          information from children under 13.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 8</span>
+        <h2>Changes to This Policy</h2>
+        <p>This Policy may be updated in response to new features or changes in our services. You will be notified of
+          significant changes through in-app notifications or on this page.</p>
+      </div>
+
+      <div class="section">
+        <span class="section-number">Article 9</span>
+        <h2>Contact</h2>
+        <p>If you have any questions or requests regarding this Policy, please contact us at the following:</p>
+        <p>Developer: Daito Yamagishi<br>
+          Email: <a href="mailto:daitoxyamagishi@gmail.com" class="contact-link">daitoxyamagishi@gmail.com</a></p>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 Yommy &mdash; Daito Yamagishi</p>
+  </footer>
+
+  <script>
+    function setLang(lang) {
+      const body = document.body;
+      const btnJa = document.getElementById('btn-ja');
+      const btnEn = document.getElementById('btn-en');
+
+      if (lang === 'en') {
+        body.classList.add('lang-en');
+        btnEn.classList.add('active');
+        btnJa.classList.remove('active');
+        document.documentElement.lang = 'en';
+      } else {
+        body.classList.remove('lang-en');
+        btnJa.classList.add('active');
+        btnEn.classList.remove('active');
+        document.documentElement.lang = 'ja';
+      }
+
+      localStorage.setItem('yommy-lang', lang);
+    }
+
+    const saved = localStorage.getItem('yommy-lang');
+    if (saved) setLang(saved);
+  </script>
+
+</body>
+
+</html>
