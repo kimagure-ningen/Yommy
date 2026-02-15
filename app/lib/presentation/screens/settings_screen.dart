@@ -884,8 +884,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: _buildInfoButton(
                         'サポート',
                         'solar-chat-round-line-bold.svg',
-                        () {
-                          // TODO: サポートページを開く
+                        () async {
+                          final url = Uri.parse('https://yommy.pages.dev/contact');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          }
                         },
                       ),
                     ),
@@ -963,10 +966,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       });
     } catch (e) {
       if (mounted) {
+        final message = e.toString().contains('通知の許可')
+            ? '通知の許可が必要です。設定アプリから通知を許可してください。'
+            : '通知の送信に失敗しました: $e';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('通知の送信に失敗しました: $e'),
+            content: Text(message),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

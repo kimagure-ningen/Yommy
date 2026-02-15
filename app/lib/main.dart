@@ -5,6 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'data/models/article.dart';
 import 'data/models/reminder_settings.dart';
+import 'data/repositories/article_repository.dart';
+import 'data/repositories/settings_repository.dart';
 import 'services/notification_service.dart';
 
 void main() async {
@@ -22,6 +24,15 @@ void main() async {
 
   // Initialize notifications
   await NotificationService.instance.initialize();
+
+  // Schedule reminders based on saved settings on app startup
+  final settingsRepo = SettingsRepository();
+  final articleRepo = ArticleRepository();
+  final settings = settingsRepo.getReminderSettings();
+  await NotificationService.instance.scheduleRemindersFromSettings(
+    settings: settings,
+    articleRepository: articleRepo,
+  );
 
   runApp(
     const ProviderScope(

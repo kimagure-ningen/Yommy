@@ -4,6 +4,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../data/models/article.dart';
 import '../data/models/reminder_settings.dart';
+import '../data/repositories/article_repository.dart';
 
 /// Service for managing local notifications
 class NotificationService {
@@ -190,6 +191,12 @@ class NotificationService {
 
   /// Show an immediate test notification
   Future<void> showTestNotification() async {
+    // Ensure permissions are granted before showing notification
+    final hasPermission = await requestPermissions();
+    if (!hasPermission) {
+      throw Exception('通知の許可が必要です。設定アプリから通知を許可してください。');
+    }
+
     await _notifications.show(
       999,
       'Yommy 📚',
@@ -208,6 +215,44 @@ class NotificationService {
           presentSound: true,
         ),
       ),
+    );
+  }
+
+  /// Schedule reminders based on current settings and articles
+  /// This is the main entry point for scheduling - it reads settings,
+  /// selects articles based on mode, and schedules notifications.
+  Future<void> scheduleRemindersFromSettings({
+    required ReminderSettings settings,
+    required ArticleRepository articleRepository,
+  }) async {
+    // Cancel existing reminders first
+    await cancelAllReminders();
+
+    // Don't schedule if disabled or no active days
+    if (!settings.enabled || settings.activeDays.isEmpty) return;
+
+    // Request permissions
+    final hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    // Select articles based on mode
+    List<Article> articles;
+    switch (settings.mode) {
+      case ReminderMode.random:
+        articles = articleRepository.getRandomUnread(settings.articleCount);
+        break;
+      case ReminderMode.oldest:
+        articles = articleRepository.getOldestUnread(settings.articleCount);
+        break;
+      case ReminderMode.newest:
+        articles = articleRepository.getNewestUnread(settings.articleCount);
+        break;
+    }
+
+    // Schedule the reminder with selected articles
+    await scheduleDailyReminder(
+      settings: settings,
+      articlesToRemind: articles,
     );
   }
 }

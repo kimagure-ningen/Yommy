@@ -39,8 +39,15 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 class ArticlesNotifier extends StateNotifier<List<Article>> {
   final ArticleRepository _repository;
   final MetadataService _metadataService;
+  final NotificationService _notificationService;
+  final SettingsRepository _settingsRepository;
 
-  ArticlesNotifier(this._repository, this._metadataService) : super([]) {
+  ArticlesNotifier(
+    this._repository,
+    this._metadataService,
+    this._notificationService,
+    this._settingsRepository,
+  ) : super([]) {
     _loadArticles();
   }
 
@@ -81,6 +88,9 @@ class ArticlesNotifier extends StateNotifier<List<Article>> {
     // Update state
     _loadArticles();
 
+    // Re-schedule reminders with updated articles
+    _rescheduleReminders();
+
     return article;
   }
 
@@ -94,6 +104,7 @@ class ArticlesNotifier extends StateNotifier<List<Article>> {
   Future<void> deleteArticle(String id) async {
     await _repository.delete(id);
     _loadArticles();
+    _rescheduleReminders();
   }
 
   /// Mark article as read
@@ -102,6 +113,7 @@ class ArticlesNotifier extends StateNotifier<List<Article>> {
     if (article != null) {
       article.markAsRead();
       _loadArticles();
+      _rescheduleReminders();
     }
   }
 
@@ -111,7 +123,17 @@ class ArticlesNotifier extends StateNotifier<List<Article>> {
     if (article != null) {
       article.markAsUnread();
       _loadArticles();
+      _rescheduleReminders();
     }
+  }
+
+  /// Re-schedule reminders when articles change
+  void _rescheduleReminders() {
+    final settings = _settingsRepository.getReminderSettings();
+    _notificationService.scheduleRemindersFromSettings(
+      settings: settings,
+      articleRepository: _repository,
+    );
   }
 }
 
@@ -119,7 +141,14 @@ final articlesProvider =
     StateNotifierProvider<ArticlesNotifier, List<Article>>((ref) {
   final repository = ref.watch(articleRepositoryProvider);
   final metadataService = ref.watch(metadataServiceProvider);
-  return ArticlesNotifier(repository, metadataService);
+  final notificationService = ref.watch(notificationServiceProvider);
+  final settingsRepository = ref.watch(settingsRepositoryProvider);
+  return ArticlesNotifier(
+    repository,
+    metadataService,
+    notificationService,
+    settingsRepository,
+  );
 });
 
 // =============================================================================
@@ -232,9 +261,14 @@ final filteredAndSearchedArticlesProvider = Provider<List<Article>>((ref) {
 /// Notifier for managing reminder settings
 class ReminderSettingsNotifier extends StateNotifier<ReminderSettings> {
   final SettingsRepository _repository;
+  final NotificationService _notificationService;
+  final ArticleRepository _articleRepository;
 
-  ReminderSettingsNotifier(this._repository)
-      : super(_repository.getReminderSettings());
+  ReminderSettingsNotifier(
+    this._repository,
+    this._notificationService,
+    this._articleRepository,
+  ) : super(_repository.getReminderSettings());
 
   /// Update settings
   Future<void> updateSettings({
@@ -252,6 +286,12 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettings> {
       mode: mode,
       articleCount: articleCount,
       activeDays: activeDays,
+    );
+
+    // Re-schedule notifications with updated settings
+    await _notificationService.scheduleRemindersFromSettings(
+      settings: state,
+      articleRepository: _articleRepository,
     );
   }
 
@@ -286,7 +326,13 @@ class ReminderSettingsNotifier extends StateNotifier<ReminderSettings> {
 final reminderSettingsProvider =
     StateNotifierProvider<ReminderSettingsNotifier, ReminderSettings>((ref) {
   final repository = ref.watch(settingsRepositoryProvider);
-  return ReminderSettingsNotifier(repository);
+  final notificationService = ref.watch(notificationServiceProvider);
+  final articleRepository = ref.watch(articleRepositoryProvider);
+  return ReminderSettingsNotifier(
+    repository,
+    notificationService,
+    articleRepository,
+  );
 });
 
 // =============================================================================
