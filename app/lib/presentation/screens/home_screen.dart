@@ -112,7 +112,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with WidgetsBindingObse
           // FAB
           Positioned(
             right: 24,
-            bottom: 80,
+            bottom: 24,
             child: _buildFAB(),
           ),
         ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/providers/providers.dart';
 import '../../core/theme/app_theme.dart';
@@ -683,7 +684,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   'solar-palette-bold.svg',
                   'システム設定',
                   () {
-                    // TODO: Theme設定画面へ遷移
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('今後実装予定です')),
+                    );
                   },
                 ),
                 Container(
@@ -695,7 +698,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   'solar-filter-bold.svg',
                   '未読を優先',
                   () {
-                    // TODO: Filter設定画面へ遷移
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('今後実装予定です')),
+                    );
                   },
                 ),
                 Container(
@@ -707,7 +712,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   'solar-user-block-bold.svg',
                   null,
                   () {
-                    // TODO: アカウント管理画面へ遷移
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('今後実装予定です')),
+                    );
                   },
                   isDestructive: true,
                 ),
@@ -817,18 +824,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             child: Column(
               children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '📚',
-                      style: TextStyle(fontSize: 32),
-                    ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(
+                    'assets/icons/app-icon.png',
+                    width: 64,
+                    height: 64,
+                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -842,7 +844,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'バージョン 2.4.1 (ビルド 108)',
+                  'バージョン 1.0.0 (ビルド 1)',
                   style: GoogleFonts.instrumentSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -853,7 +855,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Yommyは、読書リストを管理し、賢いリマインダーで興味深い記事を読み逃さないようにサポートします。',
+                    '読みたい記事を賢く整理、知識を蓄積。',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.instrumentSans(
                       fontSize: 14,
@@ -869,8 +871,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       child: _buildInfoButton(
                         'プライバシーポリシー',
                         'solar-shield-check-bold.svg',
-                        () {
-                          // TODO: プライバシーポリシーを開く
+                        () async {
+                          final url = Uri.parse('https://yommy.pages.dev');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          }
                         },
                       ),
                     ),

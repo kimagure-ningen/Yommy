@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yommy - お問い合わせ / Contact</title>
+    <meta name="description" content="Yommy アプリへのお問い合わせ / Contact us about the Yommy app">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Instrument+Sans:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png" href="assets/icon.png">
+    <link rel="apple-touch-icon" href="assets/icon.png">
+    <style>
+        :root {
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B6B6B;
+            --text-tertiary: #9B9B9B;
+            --bg-light: #FAFAFA;
+            --bg-white: #FFFFFF;
+            --neutral-50: #F8F8F8;
+            --neutral-100: #E8E8E8;
+            --neutral-200: #D1D1D1;
+            --accent: #FFB84D;
+            --accent-soft: #FFF4E0;
+            --accent-deep: #E8A030;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Instrument Sans', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary);
+            line-height: 1.8;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Header ── */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(250, 250, 250, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--neutral-100);
+        }
+
+        .header-inner {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--neutral-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .logo-text {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            letter-spacing: -0.02em;
+        }
+
+        .lang-toggle {
+            display: flex;
+            gap: 2px;
+            background: var(--neutral-100);
+            border-radius: 8px;
+            padding: 3px;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-family: 'Instrument Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--bg-white);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        /* ── Hero ── */
+        .hero {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 64px 24px 40px;
+        }
+
+        .hero h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: clamp(26px, 5vw, 36px);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .hero-sub {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .hero-divider {
+            width: 48px;
+            height: 2px;
+            background: var(--accent);
+            margin-top: 24px;
+        }
+
+        /* ── Content ── */
+        .content {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        .form-card {
+            background: var(--bg-white);
+            border-radius: 16px;
+            padding: clamp(28px, 5vw, 48px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 24px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--neutral-100);
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 32px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-label .required {
+            color: var(--accent-deep);
+            font-size: 12px;
+            margin-left: 4px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--neutral-200);
+            border-radius: 10px;
+            font-family: 'Instrument Sans', 'Noto Sans JP', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            background: var(--bg-white);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+
+        .form-select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        .form-textarea {
+            min-height: 160px;
+            resize: vertical;
+            line-height: 1.7;
+        }
+
+        .submit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px 28px;
+            background: var(--text-primary);
+            color: var(--bg-white);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Instrument Sans', 'Noto Sans JP', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ── Success message (hidden by default) ── */
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-soft);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .success-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--accent-deep);
+        }
+
+        .success-message h3 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            font-weight: 400;
+            margin-bottom: 8px;
+        }
+
+        .success-message p {
+            color: var(--text-secondary);
+            font-size: 14.5px;
+            line-height: 1.8;
+        }
+
+        /* ── Back link ── */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 24px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--text-primary);
+        }
+
+        .back-link svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-tertiary);
+            font-size: 13px;
+            border-top: 1px solid var(--neutral-100);
+        }
+
+        /* ── Language visibility ── */
+        [data-lang="en"] {
+            display: none;
+        }
+
+        body.lang-en [data-lang="ja"] {
+            display: none;
+        }
+
+        body.lang-en [data-lang="en"] {
+            display: block;
+        }
+
+        span[data-lang="en"],
+        a[data-lang="en"],
+        option[data-lang="en"] {
+            display: none;
+        }
+
+        body.lang-en span[data-lang="ja"],
+        body.lang-en a[data-lang="ja"],
+        body.lang-en option[data-lang="ja"] {
+            display: none;
+        }
+
+        body.lang-en span[data-lang="en"],
+        body.lang-en a[data-lang="en"],
+        body.lang-en option[data-lang="en"] {
+            display: inline;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero {
+            animation: fadeUp 0.5s ease-out;
+        }
+
+        .form-card {
+            animation: fadeUp 0.5s ease-out 0.1s both;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .header-inner {
+                padding: 12px 16px;
+            }
+
+            .hero {
+                padding: 48px 16px 32px;
+            }
+
+            .content {
+                padding: 0 16px 60px;
+            }
+
+            .form-card {
+                padding: 24px;
+                border-radius: 12px;
+            }
+
+            .lang-btn {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-inner">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">
+                    <img src="assets/icon.png" alt="Yommy">
+                </div>
+                <div class="logo-text">Yommy</div>
+            </a>
+            <div class="lang-toggle">
+                <button class="lang-btn active" onclick="setLang('ja')" id="btn-ja">JA</button>
+                <button class="lang-btn" onclick="setLang('en')" id="btn-en">EN</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <div class="hero">
+        <h1>
+            <span data-lang="ja">お問い合わせ</span>
+            <span data-lang="en">Contact Us</span>
+        </h1>
+        <p class="hero-sub">
+            <span data-lang="ja">ご質問・ご要望・バグ報告など、お気軽にお問い合わせください。</span>
+            <span data-lang="en">Questions, feature requests, or bug reports — we'd love to hear from you.</span>
+        </p>
+        <div class="hero-divider"></div>
+    </div>
+
+    <!-- Content -->
+    <main class="content">
+
+        <!-- ==================== Japanese Form ==================== -->
+        <div class="form-card" data-lang="ja">
+            <form id="contact-form-ja" onsubmit="handleSubmit(event, 'ja')">
+
+                <div class="form-group">
+                    <label class="form-label" for="name-ja">
+                        お名前<span class="required">*</span>
+                    </label>
+                    <input type="text" id="name-ja" class="form-input" placeholder="例：山田 太郎" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email-ja">
+                        メールアドレス<span class="required">*</span>
+                    </label>
+                    <input type="email" id="email-ja" class="form-input" placeholder="例：taro@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="category-ja">
+                        お問い合わせ種類<span class="required">*</span>
+                    </label>
+                    <select id="category-ja" class="form-select" required>
+                        <option value="" disabled selected>選択してください</option>
+                        <option value="bug">バグ報告</option>
+                        <option value="feature">機能リクエスト</option>
+                        <option value="question">質問</option>
+                        <option value="other">その他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="message-ja">
+                        お問い合わせ内容<span class="required">*</span>
+                    </label>
+                    <textarea id="message-ja" class="form-textarea" placeholder="お問い合わせ内容を入力してください" required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    送信する
+                </button>
+            </form>
+
+            <!-- Success (JA) -->
+            <div class="success-message" id="success-ja">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3>送信完了</h3>
+                <p>お問い合わせありがとうございます。<br>内容を確認次第、ご連絡いたします。</p>
+            </div>
+        </div>
+
+        <!-- ==================== English Form ==================== -->
+        <div class="form-card" data-lang="en">
+            <form id="contact-form-en" onsubmit="handleSubmit(event, 'en')">
+
+                <div class="form-group">
+                    <label class="form-label" for="name-en">
+                        Name<span class="required">*</span>
+                    </label>
+                    <input type="text" id="name-en" class="form-input" placeholder="e.g. Taro Yamada" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email-en">
+                        Email<span class="required">*</span>
+                    </label>
+                    <input type="email" id="email-en" class="form-input" placeholder="e.g. taro@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="category-en">
+                        Category<span class="required">*</span>
+                    </label>
+                    <select id="category-en" class="form-select" required>
+                        <option value="" disabled selected>Please select</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="feature">Feature Request</option>
+                        <option value="question">Question</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="message-en">
+                        Message<span class="required">*</span>
+                    </label>
+                    <textarea id="message-en" class="form-textarea" placeholder="Please enter your message"
+                        required></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    Submit
+                </button>
+            </form>
+
+            <!-- Success (EN) -->
+            <div class="success-message" id="success-en">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3>Message Sent</h3>
+                <p>Thank you for reaching out.<br>We'll get back to you as soon as possible.</p>
+            </div>
+        </div>
+
+        <!-- Back link -->
+        <a href="index.html" class="back-link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span data-lang="ja">プライバシーポリシーに戻る</span>
+            <span data-lang="en">Back to Privacy Policy</span>
+        </a>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Yommy &mdash; Daito Yamagishi</p>
+    </footer>
+
+    <script>
+        function setLang(lang) {
+            const body = document.body;
+            const btnJa = document.getElementById('btn-ja');
+            const btnEn = document.getElementById('btn-en');
+
+            if (lang === 'en') {
+                body.classList.add('lang-en');
+                btnEn.classList.add('active');
+                btnJa.classList.remove('active');
+                document.documentElement.lang = 'en';
+            } else {
+                body.classList.remove('lang-en');
+                btnJa.classList.add('active');
+                btnEn.classList.remove('active');
+                document.documentElement.lang = 'ja';
+            }
+
+            localStorage.setItem('yommy-lang', lang);
+        }
+
+        function handleSubmit(event, lang) {
+            event.preventDefault();
+            const form = document.getElementById(`contact-form-${lang}`);
+            const success = document.getElementById(`success-${lang}`);
+
+            // TODO: Implement actual form submission (e.g., EmailJS, Formspree)
+
+            form.style.display = 'none';
+            success.classList.add('show');
+        }
+
+        const saved = localStorage.getItem('yommy-lang');
+        if (saved) setLang(saved);
+    </script>
+
+</body>
+
+</html>
