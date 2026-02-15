@@ -1,11 +1,14 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../app.dart';
 import '../data/models/article.dart';
 import '../data/models/reminder_settings.dart';
 import '../data/repositories/article_repository.dart';
+import '../presentation/screens/article_detail_screen.dart';
 
 /// Service for managing local notifications
 class NotificationService {
@@ -27,7 +30,8 @@ class NotificationService {
     tz.setLocalLocation(tz.getLocation(timezoneInfo.identifier));
 
     // Android settings
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // iOS settings
     const iosSettings = DarwinInitializationSettings(
@@ -49,17 +53,29 @@ class NotificationService {
     _initialized = true;
   }
 
-  /// Handle notification tap
+  /// Handle notification tap — navigate to article detail
   void _onNotificationTapped(NotificationResponse response) {
-    // TODO: Navigate to article list or specific article
-    // This will be handled in Phase 3
+    final articleId = response.payload;
+    if (articleId == null || articleId.isEmpty) return;
+
+    // Look up the article from Hive
+    final articleRepo = ArticleRepository();
+    final article = articleRepo.getById(articleId);
+    if (article == null) return;
+
+    // Navigate to article detail screen using global navigator key
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (context) => ArticleDetailScreen(article: article),
+      ),
+    );
   }
 
   /// Request notification permissions (iOS)
   Future<bool> requestPermissions() async {
     final iOS = _notifications.resolvePlatformSpecificImplementation<
         IOSFlutterLocalNotificationsPlugin>();
-    
+
     if (iOS != null) {
       final result = await iOS.requestPermissions(
         alert: true,
@@ -71,7 +87,7 @@ class NotificationService {
 
     final android = _notifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
-    
+
     if (android != null) {
       final result = await android.requestNotificationsPermission();
       return result ?? false;
@@ -80,19 +96,43 @@ class NotificationService {
     return true;
   }
 
-  /// Schedule daily reminder notification
-  Future<void> scheduleDailyReminder({
+  /// Schedule reminders based on current settings and articles.
+  /// This is the main entry point — selects articles by mode and schedules.
+  Future<void> scheduleRemindersFromSettings({
     required ReminderSettings settings,
-    required List<Article> articlesToRemind,
+    required ArticleRepository articleRepository,
   }) async {
     // Cancel existing reminders first
     await cancelAllReminders();
 
-    if (!settings.enabled || articlesToRemind.isEmpty) return;
+    // Don't schedule if disabled or no active days
+    if (!settings.enabled || settings.activeDays.isEmpty) return;
+
+    // Request permissions
+    final hasPermission = await requestPermissions();
+    if (!hasPermission) return;
+
+    // Select a single article based on mode
+    List<Article> candidates;
+    switch (settings.mode) {
+      case ReminderMode.random:
+        candidates = articleRepository.getRandomUnread(1);
+        break;
+      case ReminderMode.oldest:
+        candidates = articleRepository.getOldestUnread(1);
+        break;
+      case ReminderMode.newest:
+        candidates = articleRepository.getNewestUnread(1);
+        break;
+    }
+
+    if (candidates.isEmpty) return;
+
+    final article = candidates.first;
 
     // Build notification content
     final title = 'Yommy 📚';
-    final body = _buildNotificationBody(articlesToRemind);
+    final body = _buildNotificationBody(article, settings.mode);
 
     // Schedule for each active day
     for (final day in settings.activeDays) {
@@ -103,30 +143,23 @@ class NotificationService {
         hour: settings.hour,
         minute: settings.minute,
         dayOfWeek: day + 1, // flutter_local_notifications uses 1-7 (Mon-Sun)
+        payload: article.id,
       );
     }
   }
 
-  /// Build notification body text
-  String _buildNotificationBody(List<Article> articles) {
-    if (articles.isEmpty) {
-      return '今日は読むものがないよ！';
-    }
+  /// Build notification body based on article and mode
+  String _buildNotificationBody(Article article, ReminderMode mode) {
+    final truncatedTitle = _truncate(article.title, 30);
 
-    if (articles.length == 1) {
-      return '「${_truncate(articles.first.title, 30)}」を読んでみよう！';
+    switch (mode) {
+      case ReminderMode.random:
+        return '🎲 ランダムに選んだよ！「$truncatedTitle」を読もう！';
+      case ReminderMode.oldest:
+        return '📦 ずっと待ってる記事があるよ！「$truncatedTitle」を読もう！';
+      case ReminderMode.newest:
+        return '✨ 最新の記事だよ！「$truncatedTitle」を読もう！';
     }
-
-    final titles = articles
-        .take(2)
-        .map((a) => '「${_truncate(a.title, 15)}」')
-        .join('、');
-    
-    if (articles.length > 2) {
-      return '$titles など${articles.length}件の記事があるよ！';
-    }
-    
-    return '$titles を読んでみよう！';
   }
 
   /// Truncate text with ellipsis
@@ -143,6 +176,7 @@ class NotificationService {
     required int hour,
     required int minute,
     required int dayOfWeek,
+    required String payload,
   }) async {
     final now = tz.TZDateTime.now(tz.local);
     var scheduledDate = tz.TZDateTime(
@@ -184,6 +218,7 @@ class NotificationService {
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      payload: payload,
     );
   }
 
@@ -218,44 +253,6 @@ class NotificationService {
           presentSound: true,
         ),
       ),
-    );
-  }
-
-  /// Schedule reminders based on current settings and articles
-  /// This is the main entry point for scheduling - it reads settings,
-  /// selects articles based on mode, and schedules notifications.
-  Future<void> scheduleRemindersFromSettings({
-    required ReminderSettings settings,
-    required ArticleRepository articleRepository,
-  }) async {
-    // Cancel existing reminders first
-    await cancelAllReminders();
-
-    // Don't schedule if disabled or no active days
-    if (!settings.enabled || settings.activeDays.isEmpty) return;
-
-    // Request permissions
-    final hasPermission = await requestPermissions();
-    if (!hasPermission) return;
-
-    // Select articles based on mode
-    List<Article> articles;
-    switch (settings.mode) {
-      case ReminderMode.random:
-        articles = articleRepository.getRandomUnread(settings.articleCount);
-        break;
-      case ReminderMode.oldest:
-        articles = articleRepository.getOldestUnread(settings.articleCount);
-        break;
-      case ReminderMode.newest:
-        articles = articleRepository.getNewestUnread(settings.articleCount);
-        break;
-    }
-
-    // Schedule the reminder with selected articles
-    await scheduleDailyReminder(
-      settings: settings,
-      articlesToRemind: articles,
     );
   }
 }
